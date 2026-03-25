@@ -20,7 +20,7 @@ const ProductSchema = mongoose.Schema(
             trim: true,
         },
         
-        // --- BỔ SUNG: LIÊN KẾT VỚI LOẠI SẢN PHẨM ---
+        // --- LIÊN KẾT VỚI LOẠI SẢN PHẨM ---
         category: {
             type: mongoose.Schema.Types.ObjectId, // Lưu trữ ID của Category
             ref: 'Category', // Tên model phải khớp chính xác với mongoose.model('Category', ...)

@@ -6,6 +6,7 @@ import {
     FiMenu, FiX, FiHome, FiPackage, FiLogIn, FiLogOut, FiBarChart2, 
     FiTruck, FiUsers // Thêm icon FiTruck hoặc FiUsers cho Nhà cung cấp
 } from 'react-icons/fi';
+import AIAssistantWidget from './AIAssistantWidget';
 // HOẶC: Nếu muốn dùng FaUserTag như trong SuppliersPage, bạn cần import từ 'react-icons/fa'
 
 const DashboardLayout = ({ children }) => {
@@ -71,6 +72,9 @@ const DashboardLayout = ({ children }) => {
     return (
         <div className="dashboard-container" style={{ minHeight: '100vh', background: '#f8fafc', display: 'flex' }}>
             
+            {/* AI Assistant Widget - Floating on right */}
+            <AIAssistantWidget />
+
             {/* 1. Sidebar (giữ nguyên logic hiển thị) */}
             <div 
                 style={{

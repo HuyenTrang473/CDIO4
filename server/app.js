@@ -11,6 +11,7 @@ const transactionRoutes = require('./routes/transactionRoutes');
 const authRoutes = require('./routes/authRoutes');
 const supplierRoutes = require('./routes/supplierRoutes'); 
 const categoryRoutes = require('./routes/categoryRoutes'); // <--- ĐÃ THÊM
+const aiRoutes = require('./routes/aiRoutes'); // <--- THÊM AI ROUTES
 
 // 3. Khởi tạo Ứng dụng Express
 const app = express();
@@ -24,12 +25,7 @@ app.use('/api/transactions', transactionRoutes);  
 app.use('/api/auth', authRoutes);           
 app.use('/api/suppliers', supplierRoutes); 
 app.use('/api/categories', categoryRoutes); // <--- ĐÃ THÊM
-
-app.get('/', (req, res) => {
-    res.send('Warehouse API Running...');
-});
-
-// 6. Khởi động Server - SỬA LOGIC ASYNC
+app.use('/api/ai', aiRoutes); // <--- THÊM AI ROUTES
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
