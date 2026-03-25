@@ -121,7 +121,14 @@ exports.getTransactions = async (req, res) => {
     try {
         const transactions = await Transaction.find()
             // Populate (điền đầy đủ) thông tin sản phẩm cần thiết cho hiển thị
-            .populate('product', 'name sku unit stockQuantity')
+            .populate({
+                path: 'product',
+                select: 'name sku unit stockQuantity supplier',
+                populate: {
+                    path: 'supplier',
+                    select: 'name'
+                }
+            })
             .sort({ createdAt: -1 })
             .lean(); 
 
@@ -130,7 +137,9 @@ exports.getTransactions = async (req, res) => {
             // Đảm bảo tên sản phẩm được hiển thị (tránh lỗi nếu product là null)
             productName: t.product ? t.product.name : 'Sản phẩm đã bị xóa',
             // Đảm bảo tồn kho được hiển thị
-            stockQuantity: t.product ? t.product.stockQuantity : 0
+            stockQuantity: t.product ? t.product.stockQuantity : 0,
+            // Thêm thông tin vendor từ supplier
+            vendor: t.product?.supplier?.name || null
         }));
 
         res.status(200).json({ 

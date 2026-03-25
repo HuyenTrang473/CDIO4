@@ -1,3 +1,4 @@
+// server/models/Product.js
 const mongoose = require('mongoose');
 
 const ProductSchema = mongoose.Schema(
@@ -19,33 +20,41 @@ const ProductSchema = mongoose.Schema(
             trim: true,
         },
         
-        // SỬA LỖI TẠO SẢN PHẨM: KHÔNG BẮT BUỘC KHI TẠO
-        // Giá vốn sẽ được cập nhật sau khi Nhập kho lần đầu
+        // --- BỔ SUNG: LIÊN KẾT VỚI LOẠI SẢN PHẨM ---
+        category: {
+            type: mongoose.Schema.Types.ObjectId, // Lưu trữ ID của Category
+            ref: 'Category', // Tên model phải khớp chính xác với mongoose.model('Category', ...)
+            required: false,
+        },
+
+        // --- BỔ SUNG: LIÊN KẾT VỚI NHÀ CUNG CẤP ---
+        supplier: {
+            type: mongoose.Schema.Types.ObjectId, // Lưu trữ ID của Supplier
+            ref: 'Supplier', // Tên model phải khớp chính xác với mongoose.model('Supplier', ...)
+            required: false,
+        },
+
         costPrice: {
             type: Number,
-            required: false, // <-- SỬA: KHÔNG BẮT BUỘC
+            required: false, 
             default: 0,
             min: [0, 'Giá nhập không thể âm'],
         },
         
-        // SỬA LỖI TẠO SẢN PHẨM: KHÔNG BẮT BUỘC KHI TẠO
         salePrice: {
             type: Number,
-            required: false, // <-- SỬA: KHÔNG BẮT BUỘC
+            required: false, 
             default: 0,
             min: [0, 'Giá bán không thể âm'],
         },
         
-        // SỬA LỖI TẠO SẢN PHẨM: KHÔNG BẮT BUỘC KHI TẠO
-        // Tồn kho ban đầu luôn là 0
         stockQuantity: {
             type: Number,
-            required: false, // <-- SỬA: KHÔNG BẮT BUỘC
+            required: false, 
             default: 0, 
             min: [0, 'Số lượng tồn kho không thể âm'],
         },
         
-        // BỔ SUNG TRƯỜNG TỒN TỐI THIỂU (minimumStock)
         minimumStock: {
             type: Number,
             required: false,
