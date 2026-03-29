@@ -56,6 +56,15 @@ const updateSupplier = asyncHandler(async (req, res) => {
     const supplier = await Supplier.findById(req.params.id);
 
     if (supplier) {
+        // Kiểm tra tên mới có trùng với NCC khác không (nếu có thay đổi)
+        if (req.body.name && req.body.name !== supplier.name) {
+            const nameExists = await Supplier.findOne({ name: req.body.name });
+            if (nameExists) {
+                res.status(400);
+                throw new Error('Tên nhà cung cấp đã tồn tại trong hệ thống');
+            }
+        }
+
         supplier.name = req.body.name || supplier.name;
         supplier.contactName = req.body.contactName || supplier.contactName;
         supplier.phone = req.body.phone || supplier.phone;

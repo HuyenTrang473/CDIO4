@@ -378,7 +378,7 @@ const ReportsPage = () => {
                                     cursor: 'pointer'
                                 }}
                             >
-                                <option value="all">Tất cả ({products.length})</option>
+                                <option key="all-vendor" value="all">Tất cả ({products.length})</option>
                                 {Array.from(new Set(products.map(p => p.supplier?.name).filter(Boolean))).map(v => {
                                     const count = products.filter(p => p.supplier?.name === v).length;
                                     return <option key={v} value={v}>{v} ({count})</option>;
@@ -402,7 +402,7 @@ const ReportsPage = () => {
                                     cursor: 'pointer'
                                 }}
                             >
-                                <option value="all">Tất cả ({products.length})</option>
+                                <option key="all-category" value="all">Tất cả ({products.length})</option>
                                 {Array.from(new Set(products.map(p => p.category?.name).filter(Boolean))).map(c => {
                                     const count = products.filter(p => p.category?.name === c).length;
                                     return <option key={c} value={c}>{c} ({count})</option>;

@@ -78,6 +78,10 @@ const SuppliersPage = () => {
     
     const handleEditSubmit = async (e) => {
         e.preventDefault();
+        if (!currentSupplier || !currentSupplier._id) {
+            alert('❌ Lỗi: Không tìm thấy ID nhà cung cấp để cập nhật.');
+            return;
+        }
         try {
             await axios.put(`${BASE_URL}/${currentSupplier._id}`, form, { 
                 headers: { Authorization: `Bearer ${token}` }
@@ -165,8 +169,8 @@ const SuppliersPage = () => {
                     </thead>
                     <tbody>
                         {suppliers.length > 0 ? (
-                            suppliers.map((s) => (
-                                <tr key={s._id} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                            suppliers.map((s, index) => (
+                                <tr key={s._id || index} style={{ borderBottom: '1px solid #f3f4f6' }}>
                                     <td style={{...tableCellStyle, fontWeight: 600, color: '#047857'}}>{s.name}</td>
                                     <td style={tableCellStyle}>{s.contactName || 'N/A'}</td>
                                     <td style={tableCellStyle}>

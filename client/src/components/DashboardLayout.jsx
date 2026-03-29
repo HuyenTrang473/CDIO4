@@ -1,158 +1,237 @@
-// client/src/components/DashboardLayout.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Link, useLocation } from 'react-router-dom';
-import { 
-    FiMenu, FiX, FiHome, FiPackage, FiLogIn, FiLogOut, FiBarChart2, 
-    FiTruck, FiUsers // Thêm icon FiTruck hoặc FiUsers cho Nhà cung cấp
-} from 'react-icons/fi';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useDataRefresh } from '../context/DataRefreshContext'; // Quan trọng để nhảy số thực tế
+import axios from 'axios';
+import {
+    FaCoffee, FaHome, FaBox, FaUsers, FaArrowUp, FaArrowDown,
+    FaFileAlt, FaRobot, FaUser, FaSignOutAlt, FaBars, FaTimes,
+    FaDatabase, FaMoneyBillWave, FaChartLine, FaExclamationCircle
+} from 'react-icons/fa';
 import AIAssistantWidget from './AIAssistantWidget';
-// HOẶC: Nếu muốn dùng FaUserTag như trong SuppliersPage, bạn cần import từ 'react-icons/fa'
+
+const interFont = `
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; }
+`;
 
 const DashboardLayout = ({ children }) => {
-    const { userName, logout } = useAuth();
-    const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [isMobile, setIsMobile] = useState(window.innerWidth < 768); 
+    const { userName, logout, token } = useAuth();
+    const { refreshKey } = useDataRefresh(); // Lắng nghe sự thay đổi dữ liệu toàn hệ thống
+    const navigate = useNavigate();
     const location = useLocation();
+    const dropdownRef = useRef(null);
 
-    useEffect(() => {
-        const handleResize = () => {
-            const newIsMobile = window.innerWidth < 768;
-            setIsMobile(newIsMobile);
-            if (!newIsMobile) {
-                setSidebarOpen(true);
-            } 
-        };
-        handleResize();
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []); 
-    
-    useEffect(() => {
-        if (isMobile) {
-            setSidebarOpen(false);
-        }
-    }, [location.pathname, isMobile]);
-
-    // Hàm để tạo style cho Nav Item (kiểm tra đường dẫn active)
-    const navStyle = (path) => ({
-        display: 'flex', 
-        alignItems: 'center',
-        padding: '15px 20px', 
-        textDecoration: 'none',
-        transition: 'all 0.2s',
-        // Kiểm tra active (sử dụng startsWith cho transactions và báo cáo)
-        backgroundColor: location.pathname.startsWith(path) ? '#e0e7ff' : 'transparent', 
-        color: location.pathname.startsWith(path) ? '#4f46e5' : '#374151', 
-        borderLeft: location.pathname.startsWith(path) ? '4px solid #4f46e5' : '4px solid transparent',
-        marginBottom: '5px',
-        fontWeight: location.pathname.startsWith(path) ? '600' : '400',
+    // States cho dữ liệu thực tế
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [showQuickStats, setShowQuickStats] = useState(false);
+    const [navStats, setNavStats] = useState({
+        totalStock: 0,
+        totalRevenue: 0,
+        todayIn: 0,
+        todayOut: 0
     });
-    
-    // CẬP NHẬT ĐƯỜNG DẪN ĐỘNG & BỔ SUNG NHÀ CUNG CẤP
+
+    // 1. FETCH DỮ LIỆU THỰC TẾ TỪ BACKEND
+    useEffect(() => {
+        const fetchNavStats = async () => {
+            try {
+                // Gọi API dashboard đã tạo ở server
+                const res = await axios.get('/api/dashboard/kpi', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                if (res.data.success) {
+                    const { totalWeight, totalValue, todayIn, todayOut } = res.data.data;
+                    setNavStats({
+                        totalStock: totalWeight || 0,
+                        totalRevenue: (totalValue / 1000000).toFixed(1) || 0, // Quy đổi sang triệu (Mtr)
+                        todayIn: todayIn || 0,
+                        todayOut: todayOut || 0
+                    });
+                }
+            } catch (err) {
+                console.error("Lỗi cập nhật KPI thực tế:", err);
+            }
+        };
+
+        if (token) fetchNavStats();
+    }, [token, location.pathname, refreshKey]); // Tự động load lại khi đổi trang hoặc có giao dịch mới
+
+    // 2. XỬ LÝ ĐÓNG DROPDOWN KHI CLICK NGOÀI
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setShowQuickStats(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
     const navItems = [
-    { path: '/', label: 'Trang Chủ', icon: <FiHome style={{ marginRight: '10px' }} /> }, 
-    { path: '/products', label: 'Sản phẩm', icon: <FiPackage style={{ marginRight: '10px' }} /> },
-   
-    { path: '/categories', label: 'Loại SP', icon: <FiUsers style={{ marginRight: '10px' }} /> }, // Dùng FiUsers hoặc FaTags (nếu import)
-    { path: '/suppliers', label: 'Nhà cung cấp', icon: <FiTruck style={{ marginRight: '10px' }} /> }, 
-    { path: '/transactions/inbound', label: 'Nhập kho', icon: <FiLogIn style={{ marginRight: '10px' }} /> }, 
-    { path: '/transactions/outbound', label: 'Xuất kho', icon: <FiLogOut style={{ marginRight: '10px' }} /> }, 
-    { path: '/reports', label: 'Báo cáo', icon: <FiBarChart2 style={{ marginRight: '10px' }} /> },
-];
-    
-    // Logic tìm tiêu đề trang
-    const currentTitle = navItems.find(item => 
-        location.pathname === item.path || (
-            item.path.startsWith('/transactions') && 
-            location.pathname.startsWith('/transactions')
-        )
-    )?.label || 'Trang Chủ';
-    
+        { path: '/', label: 'Trang chủ', icon: <FaHome /> },
+        { path: '/products', label: 'Sản phẩm', icon: <FaBox /> },
+        { path: '/suppliers', label: 'Nhà cung cấp', icon: <FaUsers /> },
+        { path: '/transactions/inbound', label: 'Nhập kho', icon: <FaArrowUp /> },
+        { path: '/transactions/outbound', label: 'Xuất kho', icon: <FaArrowDown /> },
+        { path: '/reports', label: 'Báo cáo', icon: <FaFileAlt /> },
+        { path: '/ai', label: 'AI', icon: <FaRobot /> }
+    ];
+
     return (
-        <div className="dashboard-container" style={{ minHeight: '100vh', background: '#f8fafc', display: 'flex' }}>
-            
-            {/* AI Assistant Widget - Floating on right */}
-            <AIAssistantWidget />
-
-            {/* 1. Sidebar (giữ nguyên logic hiển thị) */}
-            <div 
-                style={{
-                    position: isMobile ? 'fixed' : 'sticky', top: 0, left: 0, bottom: 0, width: '260px', minHeight: '100vh', background: 'white', boxShadow: '2px 0 10px rgba(0,0,0,0.1)',
-                    transform: sidebarOpen ? 'translateX(0)' : 'translateX(-100%)', transition: 'transform 0.3s ease', zIndex: 1000,
-                    display: (isMobile && !sidebarOpen && location.pathname !== '/') ? 'none' : 'flex', flexDirection: 'column',
-                }}
-            >
-                {/* Logo/Tiêu đề & Nút đóng Mobile */}
-                <div style={{ padding: '20px', borderBottom: '1px solid #e5e7eb', flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h2 style={{ margin: 0, color: '#1f2937', fontSize: '1.5rem', fontWeight: 'bold' }}>Kho Hàng XYZ</h2>
-                    {isMobile && (
-                        <button onClick={() => setSidebarOpen(false)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#ef4444' }}>
-                            <FiX />
-                        </button>
-                    )}
-                </div>
+        <>
+            <style>{interFont}</style>
+            <div style={{ minHeight: '100vh', backgroundColor: '#FEF3C7' }}>
                 
-                {/* Menu Điều hướng */}
-                <nav style={{ padding: '20px 0', flexGrow: 1 }}>
-                    {navItems.map(item => (
-                        <Link 
-                            key={item.path} 
-                            to={item.path} 
-                            style={navStyle(item.path)} 
-                            onClick={() => { if (isMobile) setSidebarOpen(false); }}
+                {/* --- THANH NAVBAR --- */}
+                <nav style={styles.navbar}>
+                    {/* Logo & Tên hệ thống */}
+                    <div style={styles.logo} onClick={() => navigate('/')}>
+                        <FaCoffee style={{ fontSize: '1.8rem' }} />
+                        <span style={{ display: window.innerWidth < 1024 ? 'none' : 'block' }}>Kho Cà Phê</span>
+                    </div>
+
+                    {/* 🚀 CHỨC NĂNG GIÁM SÁT KPI NHANH (GIỮA NAV) */}
+                    <div style={{ position: 'relative' }} ref={dropdownRef}>
+                        <button 
+                            onClick={() => setShowQuickStats(!showQuickStats)}
+                            style={{
+                                ...styles.kpiToggle,
+                                borderColor: navStats.totalStock > 150 ? '#ef4444' : '#D97706',
+                                boxShadow: showQuickStats ? '0 0 15px rgba(217, 119, 6, 0.2)' : 'none'
+                            }}
                         >
-                            {item.icon} {item.label}
-                        </Link>
-                    ))}
-                </nav>
-                
-                {/* Footer Sidebar (User/Logout) */}
-                <div style={{ padding: '20px', borderTop: '1px solid #e5e7eb', flexShrink: 0 }}>
-                    <p style={{ margin: '10px 0', fontSize: '0.9rem', color: '#6b7280' }}>
-                        Tài khoản: **{userName}**
-                    </p>
-                    <button 
-                        onClick={logout}
-                        style={{ width: '100%', padding: '10px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, transition: 'background 0.2s' }}
-                    >
-                        Đăng xuất
-                    </button>
-                </div>
-            </div>
-
-            {/* 2. Main content (giữ nguyên logic hiển thị) */}
-            <div 
-                style={{ 
-                    marginLeft: isMobile ? '0' : '260px', padding: '20px', flexGrow: 1, 
-                    transition: 'margin-left 0.3s ease', width: isMobile ? '100%' : 'calc(100% - 260px)', minHeight: '100vh',
-                }}
-            >
-                {/* Header */}
-                <div style={{ 
-                    display: 'flex', justifyContent: 'flex-start', alignItems: 'center',
-                    background: 'white', padding: '20px', borderRadius: '12px', marginBottom: '30px',
-                    boxShadow: '0 4px 6px rgba(0,0,0,0.05)'
-                }}>
-                    
-                    {/* Nút Mobile Menu Toggle */}
-                    {isMobile && !sidebarOpen && (
-                        <button onClick={() => setSidebarOpen(true)} style={{ background: 'none', border: 'none', fontSize: '1.5rem', marginRight: '1rem', cursor: 'pointer', color: '#4f46e5', padding: '0 10px' }}>
-                            <FiMenu />
+                            <div style={styles.kpiItem}>
+                                <FaDatabase style={{ color: '#D97706' }} />
+                                <span>{navStats.totalStock} Tấn</span>
+                            </div>
+                            <div style={styles.divider}></div>
+                            <div style={styles.kpiItem}>
+                                <FaMoneyBillWave style={{ color: '#10B981' }} />
+                                <span>{navStats.totalRevenue} M</span>
+                            </div>
+                            <FaChartLine style={{ marginLeft: '5px', color: '#92400E', fontSize: '0.8rem' }} />
                         </button>
-                    )}
 
-                    {/* Tiêu đề Trang hiện tại */}
-                    <h1 style={{ margin: 0, fontSize: '1.8rem', color: '#1f2937', fontWeight: 600 }}>
-                        {currentTitle}
-                    </h1> 
+                        {/* Bảng chi tiết Dropdown */}
+                        {showQuickStats && (
+                            <div style={styles.dropdown}>
+                                <h4 style={styles.dropdownTitle}>Giám sát thời gian thực</h4>
+                                <div style={styles.dropdownRow}>
+                                    <span>Nhập hôm nay:</span>
+                                    <b style={{ color: '#10B981' }}>+{navStats.todayIn}t</b>
+                                </div>
+                                <div style={styles.dropdownRow}>
+                                    <span>Xuất hôm nay:</span>
+                                    <b style={{ color: '#ef4444' }}>-{navStats.todayOut}t</b>
+                                </div>
+                                
+                                {navStats.totalStock > 150 && (
+                                    <div style={styles.warningBox}>
+                                        <FaExclamationCircle /> Cảnh báo: Kho sắp đầy!
+                                    </div>
+                                )}
+
+                                <button 
+                                    onClick={() => {navigate('/reports'); setShowQuickStats(false)}} 
+                                    style={styles.viewMoreBtn}
+                                >
+                                    Xem chi tiết báo cáo
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Menu Điều hướng Desktop */}
+                    <div style={styles.navLinks}>
+                        {navItems.map(item => (
+                            <button
+                                key={item.path}
+                                onClick={() => navigate(item.path)}
+                                style={{
+                                    ...styles.navButton,
+                                    backgroundColor: location.pathname === item.path ? '#D97706' : 'transparent',
+                                    color: location.pathname === item.path ? 'white' : '#4b5563'
+                                }}
+                            >
+                                {item.icon} {item.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Khu vực Người dùng */}
+                    <div style={styles.userArea}>
+                        <div style={styles.userBadge}>
+                            <FaUser /> <span>{userName || 'Owner'}</span>
+                        </div>
+                        <button onClick={logout} style={styles.logoutBtn} title="Đăng xuất">
+                            <FaSignOutAlt />
+                        </button>
+                    </div>
+                </nav>
+
+                {/* --- NỘI DUNG CHÍNH --- */}
+                <div style={styles.mainContainer}>
+                    <main>{children}</main>
                 </div>
 
-                {/* Page content */}
-                <main>{children}</main>
+                {/* Widget AI nổi */}
+                <AIAssistantWidget />
             </div>
-        </div>
+        </>
     );
+};
+
+// --- HỆ THỐNG STYLES ---
+const styles = {
+    navbar: {
+        position: 'sticky', top: 0, zIndex: 1000, backgroundColor: 'white',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.08)', padding: '0 2rem',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        height: '75px', width: '100%', boxSizing: 'border-box'
+    },
+    logo: {
+        display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.4rem',
+        fontWeight: '800', color: '#D97706', cursor: 'pointer'
+    },
+    kpiToggle: {
+        display: 'flex', alignItems: 'center', gap: '15px', backgroundColor: '#FFFBEB',
+        padding: '8px 16px', borderRadius: '15px', border: '2px solid',
+        cursor: 'pointer', outline: 'none', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+    },
+    kpiItem: {
+        display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem',
+        fontWeight: '700', color: '#92400E'
+    },
+    divider: { width: '1px', height: '18px', backgroundColor: '#FDE68A' },
+    dropdown: {
+        position: 'absolute', top: '65px', left: '50%', transform: 'translateX(-50%)',
+        width: '240px', backgroundColor: 'white', borderRadius: '14px', padding: '18px',
+        boxShadow: '0 15px 35px rgba(0,0,0,0.2)', border: '1px solid #e5e7eb',
+        animation: 'fadeIn 0.2s ease-out'
+    },
+    dropdownTitle: { margin: '0 0 15px 0', fontSize: '0.95rem', color: '#92400E', borderBottom: '1.5px solid #f3f4f6', paddingBottom: '8px' },
+    dropdownRow: { display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '10px' },
+    warningBox: { display: 'flex', alignItems: 'center', gap: '6px', color: '#ef4444', fontSize: '0.8rem', fontWeight: 'bold', marginTop: '8px', padding: '5px', backgroundColor: '#fee2e2', borderRadius: '5px' },
+    viewMoreBtn: {
+        width: '100%', padding: '10px', marginTop: '12px', backgroundColor: '#D97706',
+        color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '0.85rem', fontWeight: '600'
+    },
+    navLinks: { display: 'flex', gap: '0.6rem', alignItems: 'center' },
+    navButton: {
+        padding: '10px 14px', border: 'none', borderRadius: '10px', cursor: 'pointer',
+        fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.875rem', transition: 'all 0.2s'
+    },
+    userArea: { display: 'flex', alignItems: 'center', gap: '12px' },
+    userBadge: {
+        display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#92400E',
+        color: 'white', padding: '8px 14px', borderRadius: '25px', fontSize: '0.8rem', fontWeight: '500'
+    },
+    logoutBtn: {
+        padding: '10px', backgroundColor: '#fee2e2', color: '#ef4444', border: 'none',
+        borderRadius: '10px', cursor: 'pointer', fontSize: '1.1rem', display: 'flex', transition: '0.2s'
+    },
+    mainContainer: { width: '100%', padding: '2rem', boxSizing: 'border-box' }
 };
 
 export default DashboardLayout;

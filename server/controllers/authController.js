@@ -60,36 +60,53 @@ exports.registerUser = async (req, res) => {
 };
 
 /**
- * @desc    Đăng nhập người dùng
- * @route   POST /api/auth/login
- * @access  Public
+ * @desc    Đăng nhập người dùng
+ * @route   POST /api/auth/login
+ * @access  Public
  */
 exports.loginUser = async (req, res) => {
     const { email, password } = req.body;
 
     try {
-        // 1. Tìm người dùng bằng email và chọn cả trường password
+        // 1. Tìm người dùng bằng email
         const user = await User.findOne({ email }).select('+password');
 
-        // 2. Kiểm tra tồn tại và so sánh mật khẩu
-        if (user && (await user.matchPassword(password))) {
-            // 3. Trả về thông tin người dùng và JWT
-            res.json({
-                success: true,
-                message: 'Đăng nhập thành công.',
-                data: {
-                    _id: user._id,
-                    name: user.name,
-                    email: user.email,
-                    role: user.role,
-                    token: generateToken(user._id), // Tạo token
-                },
+        // Bước 4.2: Kiểm tra nếu tài khoản không tồn tại
+        if (!user) {
+            return res.status(404).json({ 
+                success: false, 
+                message: 'Tài khoản không tồn tại' // Khớp với đặc tả 4.2
             });
-        } else {
-            res.status(401).json({ success: false, message: 'Email hoặc mật khẩu không chính xác.' });
         }
+
+        // Bước 4.3: Kiểm tra nếu mật khẩu sai
+        const isMatch = await user.matchPassword(password);
+        if (!isMatch) {
+            return res.status(401).json({ 
+                success: false, 
+                message: 'Mật khẩu không đúng' // Khớp với đặc tả 4.3
+            });
+        }
+
+        // Bước 4.1: Đăng nhập thành công -> Trả về thông tin và Token
+        res.json({
+            success: true,
+            message: 'Đăng nhập thành công.',
+            data: {
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role, // Trả về quyền hạn để Client chuyển hướng Dashboard
+                token: generateToken(user._id),
+            },
+        });
+
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Lỗi server khi đăng nhập.', error: error.message });
+        res.status(500).json({ 
+            success: false, 
+            message: 'Lỗi server khi đăng nhập.', 
+            error: error.message 
+        });
     }
 };
 

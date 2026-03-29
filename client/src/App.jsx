@@ -12,7 +12,7 @@ import HomePage from './pages/HomePage';
 import ProductsPage from './pages/ProductsPage';
 import TransactionsPage from './pages/TransactionsPage'; 
 import ReportsPage from './pages/ReportsPage';
-import ReportsPageTest from './pages/ReportsPageTest';
+// import ReportsPageTest from './pages/ReportsPageTest';
 import SuppliersPage from './pages/SuppliersPage';
 import CategoriesPage from './pages/CategoriesPage';
 import SearchIntelligencePage from './pages/SearchIntelligencePage';
@@ -54,7 +54,7 @@ const LayoutWrapper = () => {
                 <Route path="/reports" element={<ReportsPage />} />
 
                 {/* Trang Test Báo cáo */}
-                <Route path="/reports-test" element={<ReportsPageTest />} />
+                {/* <Route path="/reports-test" element={<ReportsPageTest />} /> */}
 
                 {/* Trang Search Intelligence */}
                 <Route path="/search" element={<SearchIntelligencePage />} />

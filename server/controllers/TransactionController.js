@@ -67,9 +67,9 @@ exports.createTransaction = async (req, res) => {
         
         if (type === 'in') {
             // 💡 TÍNH GIÁ VỐN TRUNG BÌNH KHI NHẬP KHO
-            const oldTotalValue = existingProduct.stockQuantity * oldCostPrice;
+            const oldTotalValue = (existingProduct.stockQuantity || 0) * (oldCostPrice || 0);
             const incomingValue = numQuantity * numCostPrice;
-            const newTotalStock = existingProduct.stockQuantity + numQuantity;
+            const newTotalStock = (existingProduct.stockQuantity || 0) + numQuantity;
             
             if (newTotalStock > 0) {
                 // Công thức giá vốn trung bình di động: (Tổng giá trị cũ + Tổng giá trị mới nhập) / Tổng số lượng mới
@@ -85,17 +85,34 @@ exports.createTransaction = async (req, res) => {
         }
         
         // Lưu lại sản phẩm đã cập nhật
-        await existingProduct.save(); 
+        try {
+            await existingProduct.save(); 
+        } catch (saveError) {
+            console.error('Error saving product:', saveError);
+            return res.status(500).json({ 
+                success: false, 
+                message: 'Lỗi khi cập nhật sản phẩm: ' + saveError.message 
+            });
+        }
 
         // 4. Ghi lại Giao dịch vào Database (Tạo Transaction)
-        const transaction = await Transaction.create({
-            product: productId, 
-            type,
-            quantity: numQuantity,
-            // 💡 Dùng giá vốn ĐÃ LƯU TRONG SẢN PHẨM để ghi lại giá vốn của giao dịch
-            price: type === 'in' ? numCostPrice : oldCostPrice, // Lưu giá nhập (in) hoặc giá vốn cũ (out)
-            notes: note || '' 
-        }); 
+        let transaction;
+        try {
+            transaction = await Transaction.create({
+                product: productId, 
+                type,
+                quantity: numQuantity,
+                // 💡 Dùng giá vốn ĐÃ LƯU TRONG SẢN PHẨM để ghi lại giá vốn của giao dịch
+                price: type === 'in' ? numCostPrice : oldCostPrice, // Lưu giá nhập (in) hoặc giá vốn cũ (out)
+                notes: note || '' 
+            }); 
+        } catch (txError) {
+            console.error('Error creating transaction:', txError);
+            return res.status(500).json({ 
+                success: false, 
+                message: 'Lỗi khi tạo giao dịch: ' + txError.message 
+            });
+        } 
 
         res.status(201).json({ 
             success: true, 

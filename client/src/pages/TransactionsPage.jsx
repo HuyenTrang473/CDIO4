@@ -200,7 +200,7 @@ const TransactionsPage = () => {
                         <div style={{gridColumn: 'span 3'}}>
                             <label style={labelStyle}>Sản phẩm:</label>
                             <select name="productId" value={form.productId} onChange={handleChange} required style={inputStyle}>
-                            <option value="">-- Chọn sản phẩm --</option>
+                            <option key="default" value="">-- Chọn sản phẩm --</option>
                             {products.map(p => (
                                 <option key={p._id} value={p._id}>
                                     {p.name} (Tồn: {formatCurrency(p.stockQuantity)} {p.unit}) - SKU: {p.sku || 'N/A'}
