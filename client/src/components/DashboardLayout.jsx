@@ -6,9 +6,10 @@ import axios from 'axios';
 import {
     FaCoffee, FaHome, FaBox, FaUsers, FaArrowUp, FaArrowDown,
     FaFileAlt, FaRobot, FaUser, FaSignOutAlt, FaBars, FaTimes,
-    FaDatabase, FaMoneyBillWave, FaChartLine, FaExclamationCircle
+    FaDatabase, FaMoneyBillWave, FaChartLine, FaExclamationCircle, FaCheckCircle, FaServer, FaBuilding, FaUserTie
 } from 'react-icons/fa';
 import AIAssistantWidget from './AIAssistantWidget';
+import UserProfileModal from './UserProfileModal';
 
 const interFont = `
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -25,6 +26,7 @@ const DashboardLayout = ({ children }) => {
     // States cho dữ liệu thực tế
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [showQuickStats, setShowQuickStats] = useState(false);
+    const [showProfileModal, setShowProfileModal] = useState(false);
     const [navStats, setNavStats] = useState({
         totalStock: 0,
         totalRevenue: 0,
@@ -75,7 +77,12 @@ const DashboardLayout = ({ children }) => {
         { path: '/transactions/inbound', label: 'Nhập kho', icon: <FaArrowUp /> },
         { path: '/transactions/outbound', label: 'Xuất kho', icon: <FaArrowDown /> },
         { path: '/reports', label: 'Báo cáo', icon: <FaFileAlt /> },
-        { path: '/ai', label: 'AI', icon: <FaRobot /> }
+        { path: '/reports/export', label: 'Xuất Excel', icon: <FaFileAlt /> },
+        { path: '/ai', label: 'AI', icon: <FaRobot /> },
+        { path: '/admin/approvals', label: 'Phê Duyệt', icon: <FaCheckCircle /> },
+        { path: '/admin/users', label: 'Quản Lý User', icon: <FaUser /> },
+        { path: '/admin/monitoring', label: 'Giám Sát', icon: <FaServer /> },
+        { path: '/supplier/portal', label: 'NCC Portal', icon: <FaBuilding /> }
     ];
 
     return (
@@ -161,14 +168,28 @@ const DashboardLayout = ({ children }) => {
 
                     {/* Khu vực Người dùng */}
                     <div style={styles.userArea}>
-                        <div style={styles.userBadge}>
+                        <div style={{...styles.userBadge, cursor: 'pointer'}} onClick={() => setShowProfileModal(true)}>
                             <FaUser /> <span>{userName || 'Owner'}</span>
                         </div>
+                        <button 
+                            onClick={() => navigate('/vendor/login')} 
+                            style={{
+                                ...styles.logoutBtn,
+                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                                color: 'white'
+                            }} 
+                            title="Vendor Portal"
+                        >
+                            <FaUserTie />
+                        </button>
                         <button onClick={logout} style={styles.logoutBtn} title="Đăng xuất">
                             <FaSignOutAlt />
                         </button>
                     </div>
                 </nav>
+
+                {/* User Profile Modal */}
+                <UserProfileModal isOpen={showProfileModal} onClose={() => setShowProfileModal(false)} />
 
                 {/* --- NỘI DUNG CHÍNH --- */}
                 <div style={styles.mainContainer}>

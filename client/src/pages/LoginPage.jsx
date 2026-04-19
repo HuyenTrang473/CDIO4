@@ -1,4 +1,4 @@
-// client/src/pages/LoginPage.jsx (ĐÃ SỬA VÀ BỔ SUNG LIÊN KẾT ĐĂNG KÝ)
+// client/src/pages/LoginPage.jsx (ĐÃ SỬA VÀ BỔFaHardDrive SUNG LIÊN KẾT ĐĂNG KÝ)
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom'; // 💡 FIX 1 & 2: Gộp và thêm Link
 import axios from 'axios';
@@ -144,7 +144,7 @@ const LoginPage = () => {
                             style={{
                                 width: '100%',
                                 padding: '0.75rem 1rem',
-                                border: '1px solid #d1d5db',
+                                // border: '1px solid #d1d5db',
                                 borderRadius: '8px',
                                 fontSize: '1rem',
                                 transition: 'border-color 0.2s, box-shadow 0.2s',
