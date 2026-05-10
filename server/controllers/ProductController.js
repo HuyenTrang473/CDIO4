@@ -9,13 +9,13 @@ const { formatErrors } = require('../utils/validationUtils'); // Nếu bạn có
 // @access Private
 
 const getProducts = asyncHandler(async (req, res) => {
-    
+
     const products = await Product.find()
         .populate('category', 'name') // Lấy trường 'name' từ bảng Category
         .populate('supplier', 'name') // Lấy trường 'name' từ bảng Supplier
         .sort({ createdAt: -1 });
 
-    res.status(200).json({ 
+    res.status(200).json({
         message: 'Lấy danh sách sản phẩm thành công',
         data: products,
         total: products.length
@@ -33,14 +33,14 @@ const createProduct = asyncHandler(async (req, res) => {
         res.status(400);
         throw new Error('Vui lòng nhập đầy đủ các trường bắt buộc (Tên, Mã SKU, Giá nhập, Giá bán, Đơn vị tính).');
     }
-    
+
     // Kiểm tra nếu SKU hoặc Tên đã tồn tại
     const productExists = await Product.findOne({ $or: [{ sku }, { name }] });
     if (productExists) {
         res.status(400);
         throw new Error('Mã SKU hoặc Tên sản phẩm đã tồn tại.');
     }
-    
+
     // Tạo sản phẩm mới. stockQuantity sẽ được tự động gán là 0 (theo Model).
     const product = await Product.create({
         name,
@@ -78,7 +78,7 @@ const updateProduct = asyncHandler(async (req, res) => {
 
     // Loại bỏ stockQuantity để không cho phép sửa tồn kho trực tiếp qua đây
     const { stockQuantity, ...updateData } = req.body;
-    
+
     // Kiểm tra trùng lặp SKU/Tên (Loại trừ sản phẩm hiện tại)
     const checkDuplicateConditions = [];
     if (updateData.sku && updateData.sku !== product.sku) {
@@ -100,7 +100,7 @@ const updateProduct = asyncHandler(async (req, res) => {
             throw new Error(`${field} mới đã được sử dụng bởi sản phẩm khác.`);
         }
     }
-    
+
     if (updateData.costPrice) updateData.costPrice = parseFloat(updateData.costPrice);
     if (updateData.salePrice) updateData.salePrice = parseFloat(updateData.salePrice);
 
@@ -110,8 +110,8 @@ const updateProduct = asyncHandler(async (req, res) => {
         updateData,
         { new: true, runValidators: true }
     )
-    .populate('category', 'name') // POPULATE Ở ĐÂY để Frontend nhận kết quả mới nhất
-    .populate('supplier', 'name');
+        .populate('category', 'name') // POPULATE Ở ĐÂY để Frontend nhận kết quả mới nhất
+        .populate('supplier', 'name');
 
     if (updatedProduct) {
         res.status(200).json({
@@ -142,9 +142,9 @@ const deleteProduct = asyncHandler(async (req, res) => {
 
     await Product.deleteOne({ _id: req.params.id });
 
-    res.status(200).json({ 
+    res.status(200).json({
         message: 'Xóa sản phẩm thành công',
-        id: req.params.id 
+        id: req.params.id
     });
 });
 

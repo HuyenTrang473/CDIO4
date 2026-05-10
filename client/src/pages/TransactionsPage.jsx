@@ -1,6 +1,6 @@
 // client/src/pages/TransactionsPage.jsx
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useDataRefresh } from '../context/DataRefreshContext'; 
@@ -61,7 +61,7 @@ const TransactionsPage = () => {
 
 
     // --- FETCH TRANSACTIONS ---
-    const fetchTransactions = async () => {
+    const fetchTransactions = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
@@ -82,10 +82,10 @@ const TransactionsPage = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [token, formType]);
 
     // --- FETCH PRODUCTS ---
-    const fetchProducts = async () => {
+    const fetchProducts = useCallback(async () => {
         try {
             const res = await axios.get('/api/products', { 
                 headers: { Authorization: `Bearer ${token}` } 
@@ -94,7 +94,7 @@ const TransactionsPage = () => {
         } catch (err) {
             console.error('Products fetch error:', err);
         }
-    };
+    }, [token]);
     
     // --- SUBMIT LOGIC ---
     const handleSubmit = async (e) => {

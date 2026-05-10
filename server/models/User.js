@@ -15,7 +15,7 @@ const UserSchema = mongoose.Schema(
             unique: true,
             trim: true,
             match: [
-                /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+                /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,})+$/,
                 'Vui lòng nhập địa chỉ email hợp lệ'
             ]
         },
@@ -27,7 +27,7 @@ const UserSchema = mongoose.Schema(
         },
         role: {
             type: String,
-            enum: ['admin', 'manager', 'staff'], // Phân quyền
+            enum: ['admin', 'manager', 'staff', 'supplier', 'customer'], // Phân quyền
             default: 'staff',
         }
     },

@@ -24,8 +24,7 @@ const categorySchema = new mongoose.Schema({
     }
 });
 
-// Thêm index cho trường name để tăng tốc độ tìm kiếm
-categorySchema.index({ name: 1 });
+
 
 const Category = mongoose.model('Category', categorySchema);
 

@@ -12,6 +12,7 @@ const authRoutes = require('./routes/authRoutes');
 const supplierRoutes = require('./routes/supplierRoutes'); 
 const categoryRoutes = require('./routes/categoryRoutes'); // <--- ĐÃ THÊM
 const aiRoutes = require('./routes/aiRoutes'); // <--- THÊM AI ROUTES
+const dashboardRoutes = require('./routes/dashboard');
 
 // 3. Khởi tạo Ứng dụng Express
 const app = express();
@@ -26,6 +27,7 @@ app.use('/api/auth', authRoutes);          
 app.use('/api/suppliers', supplierRoutes); 
 app.use('/api/categories', categoryRoutes); // <--- ĐÃ THÊM
 app.use('/api/ai', aiRoutes); // <--- THÊM AI ROUTES
+app.use('/api/dashboard', dashboardRoutes);
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
